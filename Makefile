@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS =-g -Wall
+CFLAGS =-ggdb -Wall -Wextra
 
-crum: main.c
+crum: crum.c stack.c
 	$(CC) $(CFLAGS) -o $@ $^

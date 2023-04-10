@@ -1,82 +1,33 @@
+#include "./stack.h"
 #include <assert.h>
 #include <ctype.h>
-#include <float.h>
-#include <stdbool.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define STACK_SIZE 100
 
-typedef enum {
-	TOKEN_OP,
-	TOKEN_NUM,
-} Token_Type;
-
-typedef struct
+long double evaluate_string(const char* input)
 {
-	union
+	if ( strcmp(input, "") == 0 )
 	{
-		long double num;
-		char op;
-	};
-	Token_Type type;
-} Token;
-
-typedef struct
-{
-	long double nums[STACK_SIZE];
-	size_t stack_size;
-} Stack;
-
-Stack init_Stack()
-{
-	Stack x;
-	x.stack_size = 0;
-	return x;
-}
-
-bool push_Stack(Stack* stack, long double num)
-{
-	assert(stack != NULL);
-	if ( stack->stack_size >= STACK_SIZE )
-	{
-		return false;
+		fprintf(stderr, "Empty input string, can't calculate anything\n");
+		exit(1);
 	}
-	stack->nums[stack->stack_size] = num;
-	stack->stack_size++;
-	return true;
-}
-
-long double pop_Stack(Stack* stack)
-{
-	assert(stack != NULL);
-	if ( stack->stack_size == 0 )
-	{
-		return LDBL_MIN;
-	}
-	stack->stack_size--;
-	long double num = stack->nums[stack->stack_size];
-	return num;
-}
-
-int main(int argc, char* argv[])
-{
 	Stack stack = init_Stack();
-	const char* input = "1.2 2.4 3.5 /\n";
 	char c;
 	for ( size_t i = 0; (c = input[i]) != '\0'; i++ )
 	{
-		if ( c == ' ' || c == '\t' )
+		if ( isspace(c) )
 		{
 			continue;
 		}
-		if ( isdigit(c) )
+		char* end_of_num;
+		long double num = strtold(input + i, &end_of_num);
+		if ( end_of_num != input + i )
 		{
-			char* end_of_num;
-			long double num = strtold(input + i, &end_of_num);
-			if ( push_Stack(&stack, num) == false )
+			if ( !push_Stack(&stack, num) )
 			{
-				fputs("Stack is full, push a number", stderr);
+				fputs("Stack is full, couldn't push a number", stderr);
 				exit(1);
 			}
 			i = end_of_num - input - 1;
@@ -88,13 +39,13 @@ int main(int argc, char* argv[])
 				case '+':
 					{
 						long double operand1 = pop_Stack(&stack);
-						if ( operand1 == LDBL_MIN )
+						if ( isnan(operand1) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
 						}
 						long double operand2 = pop_Stack(&stack);
-						if ( operand2 == LDBL_MIN )
+						if ( isnan(operand2) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
@@ -105,13 +56,13 @@ int main(int argc, char* argv[])
 				case '-':
 					{
 						long double operand1 = pop_Stack(&stack);
-						if ( operand1 == LDBL_MIN )
+						if ( isnan(operand1) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
 						}
 						long double operand2 = pop_Stack(&stack);
-						if ( operand2 == LDBL_MIN )
+						if ( isnan(operand2) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
@@ -122,13 +73,13 @@ int main(int argc, char* argv[])
 				case '*':
 					{
 						long double operand1 = pop_Stack(&stack);
-						if ( operand1 == LDBL_MIN )
+						if ( isnan(operand1) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
 						}
 						long double operand2 = pop_Stack(&stack);
-						if ( operand2 == LDBL_MIN )
+						if ( isnan(operand2) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
@@ -139,13 +90,18 @@ int main(int argc, char* argv[])
 				case '/':
 					{
 						long double operand1 = pop_Stack(&stack);
-						if ( operand1 == LDBL_MIN )
+						if ( isnan(operand1) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
 						}
+						if ( operand1 == 0.0l )
+						{
+							fputs("Attemped to divide by zero, invalid operation\n", stderr);
+							exit(1);
+						}
 						long double operand2 = pop_Stack(&stack);
-						if ( operand2 == LDBL_MIN )
+						if ( isnan(operand2) )
 						{
 							fputs("Stack is empty, failed to pop a number\n", stderr);
 							exit(1);
@@ -153,24 +109,22 @@ int main(int argc, char* argv[])
 						push_Stack(&stack, operand2 / operand1);
 						break;
 					}
-				case '\n':
-					{
-						long double popped_num = pop_Stack(&stack);
-						if ( popped_num == LDBL_MIN )
-						{
-							fputs("Stack is empty, failed to pop a number\n", stderr);
-							exit(1);
-						}
-						printf("%.8Lg\n", popped_num);
-						break;
-					}
 				default:
 					{
 						fprintf(stderr, "Found an illegal character at index %lu: %c\n", i + 1, input[i]);
+						break;
 					}
 			}
 		}
 	}
+	return pop_Stack(&stack);
+}
 
+int main(int argc, char* argv[])
+{
+	// const char* input1 = "1 2 - 4 5 + *";
+	// printf("%.3Lg\n", evaluate_string(input1));
+	const char* input2 = "0.0 0.0 /";
+	printf("%.3Lg\n", evaluate_string(input2));
 	return EXIT_SUCCESS;
 }
