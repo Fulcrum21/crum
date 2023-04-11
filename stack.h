@@ -5,11 +5,13 @@
 #define STACK_SIZE 100
 typedef struct
 {
-	long double nums[STACK_SIZE];
+	long double* nums;
 	size_t stack_size;
+	size_t capacity;
 } Stack;
 
+Stack init_Stack_capacity(size_t capacity);
 Stack init_Stack();
-bool push_Stack(Stack* stack, long double num);
+void push_Stack(Stack* stack, long double num);
 long double pop_Stack(Stack* stack);
 #endif // STACK_H_
