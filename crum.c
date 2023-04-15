@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern bool use_radians;
+
 void print_stack_top(Stack stack)
 {
 	if ( stack.stack_size == 0 )
@@ -16,6 +18,7 @@ void print_stack_top(Stack stack)
 	}
 	printf("%.4Lf\n", stack.nums[stack.stack_size - 1]);
 }
+#define deg_to_rad(deg) ((deg) / 180.0L * M_PI)
 
 void evaluate_string(Stack* stack, Slice input)
 {
@@ -120,7 +123,47 @@ void evaluate_string(Stack* stack, Slice input)
 					fputs("Stack is empty, failed to pop a number\n", stderr);
 					exit(1);
 				}
+
+				if ( !use_radians )
+				{
+					degrees = deg_to_rad(degrees);
+				}
 				push_Stack(stack, sinl(degrees));
+			}
+			else if ( strcmp(temp, "cos") == 0 )
+			{
+				long double degrees = pop_Stack(stack);
+				if ( isnan(degrees) )
+				{
+					fputs("Stack is empty, failed to pop a number\n", stderr);
+					exit(1);
+				}
+				if ( !use_radians )
+				{
+					degrees = deg_to_rad(degrees);
+				}
+				push_Stack(stack, cosl(degrees));
+			}
+			else if ( strcmp(temp, "tan") == 0 )
+			{
+				long double degrees = pop_Stack(stack);
+				if ( isnan(degrees) )
+				{
+					fputs("Stack is empty, failed to pop a number\n", stderr);
+					exit(1);
+				}
+				if ( !use_radians )
+				{
+					degrees = deg_to_rad(degrees);
+				}
+				if ( degrees == M_PI / 2 )
+				{
+					puts("Tan is not defined at pi/2");
+				}
+				else
+				{
+					push_Stack(stack, cosl(degrees));
+				}
 			}
 			else
 			{
