@@ -47,11 +47,7 @@ Slice trim(Slice slice)
 {
 	return trim_right(trim_left(slice));
 }
-bool Slice_cmp(Slice slice1, Slice slice2)
-{
-	if ( slice1.size != slice2.size )
-	{
-		return false;
-	}
-	return strncmp(slice1.string, slice2.string, slice1.size) == 0;
-}
+// bool Slice_cmp(Slice slice1, Slice slice2)
+// {
+// 	return ((slice1.size == slice2.size) && (strncmp(slice1.string, slice2.string, slice1.size) == 0));
+// }

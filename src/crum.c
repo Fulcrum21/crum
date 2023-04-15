@@ -16,7 +16,7 @@ void print_stack_top(Stack stack)
 		puts("The stack is empty");
 		return;
 	}
-	printf("%.4Lf\n", stack.nums[stack.stack_size - 1]);
+	printf("%.11Lg\n", stack.nums[stack.stack_size - 1]);
 }
 #define deg_to_rad(deg) ((deg) / 180.0L * M_PI)
 
@@ -40,25 +40,15 @@ void evaluate_string(Stack* stack, Slice input)
 		{
 			push_Stack(stack, num);
 			i = end_of_num - input.string - 1;
-			if ( end_of_num >= input.string + input.size )
-			{
-				break;
-			}
 		}
 		else if ( c == '+' || c == '-' || c == '/' || c == '*' || c == '%' )
 		{
+			if ( stack->stack_size < 2 )
+			{
+				puts("Not enough arguments in stack to perform the operation");
+			}
 			long double operand1 = pop_Stack(stack);
-			if ( isnan(operand1) )
-			{
-				fputs("Stack is empty, failed to pop a number\n", stderr);
-				exit(1);
-			}
 			long double operand2 = pop_Stack(stack);
-			if ( isnan(operand2) )
-			{
-				fputs("Stack is empty, failed to pop a number\n", stderr);
-				exit(1);
-			}
 			switch ( c )
 			{
 				case '+':
@@ -86,10 +76,7 @@ void evaluate_string(Stack* stack, Slice input)
 					}
 					push_Stack(stack, fmodl(operand2, operand1));
 					break;
-				default:
-					fprintf(stderr, "Found an illegal character at index %lu: %c\n", i + 1, input.string[i]);
 			}
-			continue;
 		}
 		else
 		{
@@ -103,9 +90,54 @@ void evaluate_string(Stack* stack, Slice input)
 				k++;
 				j++;
 			}
-			if ( strcmp(temp, "p") == 0 )
+#undef TEMP_SIZE
+			if ( strcmp(temp, "d") == 0 )
+			{
+				if ( stack->stack_size > 0 )
+				{
+					push_Stack(stack, stack->nums[stack->stack_size - 1]);
+				}
+				else
+				{
+					puts("No numbers in stack to duplicate");
+					break;
+				}
+			}
+			if ( strcmp(temp, "t") == 0 )
 			{
 				print_stack_top(*stack);
+			}
+			else if ( strcmp(temp, "o") == 0 )
+			{
+				if ( stack->stack_size == 0 )
+				{
+					puts("Nothing to pop off the stack");
+					break;
+				}
+				long double popped = pop_Stack(stack);
+				printf("%Lf\n", popped);
+			}
+			else if ( strcmp(temp, "c") == 0 )
+			{
+				stack->stack_size = 0;
+			}
+			else if ( strcmp(temp, "s") == 0 )
+			{
+				if ( stack->stack_size >= 2 )
+				{
+					long double temp = stack->nums[stack->stack_size - 1];
+					stack->nums[stack->stack_size - 1] = stack->nums[stack->stack_size - 2];
+					stack->nums[stack->stack_size - 2] = temp;
+				}
+				else
+				{
+					puts("Not enough elements in stack to swap");
+					break;
+				}
+			}
+			else if ( strcmp(temp, "p") == 0 )
+			{
+				print_Stack(*stack);
 			}
 			else if ( strcmp(temp, "pi") == 0 )
 			{
@@ -117,13 +149,12 @@ void evaluate_string(Stack* stack, Slice input)
 			}
 			else if ( strcmp(temp, "sin") == 0 )
 			{
-				long double degrees = pop_Stack(stack);
-				if ( isnan(degrees) )
+				if ( stack->stack_size == 0 )
 				{
-					fputs("Stack is empty, failed to pop a number\n", stderr);
-					exit(1);
+					puts("Not enough arguments in stack to perform operation sin");
+					break;
 				}
-
+				long double degrees = pop_Stack(stack);
 				if ( !use_radians )
 				{
 					degrees = deg_to_rad(degrees);
@@ -132,12 +163,12 @@ void evaluate_string(Stack* stack, Slice input)
 			}
 			else if ( strcmp(temp, "cos") == 0 )
 			{
-				long double degrees = pop_Stack(stack);
-				if ( isnan(degrees) )
+				if ( stack->stack_size == 0 )
 				{
-					fputs("Stack is empty, failed to pop a number\n", stderr);
-					exit(1);
+					puts("Not enough arguments in stack to perform operation cos");
+					break;
 				}
+				long double degrees = pop_Stack(stack);
 				if ( !use_radians )
 				{
 					degrees = deg_to_rad(degrees);
@@ -146,12 +177,12 @@ void evaluate_string(Stack* stack, Slice input)
 			}
 			else if ( strcmp(temp, "tan") == 0 )
 			{
-				long double degrees = pop_Stack(stack);
-				if ( isnan(degrees) )
+				if ( stack->stack_size == 0 )
 				{
-					fputs("Stack is empty, failed to pop a number\n", stderr);
-					exit(1);
+					puts("Not enough arguments in stack to perform operation tan");
+					break;
 				}
+				long double degrees = pop_Stack(stack);
 				if ( !use_radians )
 				{
 					degrees = deg_to_rad(degrees);
@@ -172,7 +203,5 @@ void evaluate_string(Stack* stack, Slice input)
 			}
 			i = k - 1;
 		}
-
-#undef TEMP_SIZE
 	}
 }

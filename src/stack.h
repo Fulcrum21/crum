@@ -9,6 +9,7 @@ typedef struct
 	size_t stack_size;
 } Stack;
 
+void print_Stack(Stack stack);
 void push_Stack(Stack* stack, long double num);
 long double pop_Stack(Stack* stack);
 #endif // STACK_H_

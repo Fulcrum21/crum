@@ -1,5 +1,5 @@
-#include "./stack.h"
 #include "slice.h"
+#include "stack.h"
 #ifndef CRUM_H_
 #define CRUM_H_
 
