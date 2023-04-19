@@ -1,4 +1,3 @@
-// TODO: add more commands
 // TODO: Variables
 // TODO: better error handling
 // TODO: bignum support
@@ -68,7 +67,12 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			evaluate_string(&stack, input_slice);
+			Result result = evaluate_string(&stack, input_slice);
+			if ( result.is_err )
+			{
+				printf("Error: %s\nToken: %.*s\n", result.error.err_str, result.error.token_length,
+				    input_slice.string + result.error.index);
+			}
 		}
 		fputs(">>> ", stdout);
 	}

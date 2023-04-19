@@ -10,3 +10,5 @@ crum: $(OBJ)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) -c -o $@ $(CFLAGS) $^
+clean:
+	$(RM) $(OBJDIR)/* crum
