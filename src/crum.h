@@ -5,6 +5,6 @@
 #define CRUM_H_
 
 void print_stack_top(Stack stack);
-Result evaluate_string(Stack* stack_ptr, Slice input);
+Result evaluate_string(Stack* stack, Slice tokens[], size_t token_length);
 
 #endif // CRUM_H_

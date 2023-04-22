@@ -1,10 +1,15 @@
 // TODO: Variables
 // TODO: better error handling
 // TODO: bignum support
+#define RESULT_IMPL
+#define SLICE_IMPL
 #include "crum.h"
 #include <libgen.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
+#define BUFFERSIZE 1024
+#define TOKENSIZE BUFFERSIZE / 2
 
 extern bool use_radians;
 bool use_radians = false;
@@ -37,17 +42,19 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	Slice help_slice = init_Slice_from_cstr("help");
-	Slice quit_slice = init_Slice_from_cstr("quit");
-	Slice q_slice = init_Slice_from_cstr("q");
-	Slice exit_slice = init_Slice_from_cstr("exit");
+	Slice help_slice = Slice_from_cstr("help");
+	Slice quit_slice = Slice_from_cstr("quit");
+	Slice q_slice = Slice_from_cstr("q");
+	Slice exit_slice = Slice_from_cstr("exit");
 	Stack stack = { 0 };
 	fputs(welcome_msg, stdout);
 	fputs(">>> ", stdout);
 	while ( 1 )
 	{
-		char buffer[1024] = { 0 };
-		if ( !fgets(buffer, 1024, stdin) )
+		size_t tokensize = 0;
+		Slice tokens[TOKENSIZE] = { 0 };
+		char buffer[BUFFERSIZE] = { 0 };
+		if ( !fgets(buffer, BUFFERSIZE, stdin) )
 		{
 			if ( ferror(stdout) )
 			{
@@ -55,25 +62,35 @@ int main(int argc, char* argv[])
 			}
 			break;
 		}
-		Slice input_slice = trim(init_Slice_from_cstr(buffer));
-		if ( Slice_cmp(input_slice, help_slice) )
+		Slice input_slice = Slice_trim(Slice_from_cstr(buffer));
+		while ( 1 )
 		{
-			puts(help_msg);
-		}
-		else if ( Slice_cmp(input_slice, quit_slice) || Slice_cmp(input_slice, q_slice) || Slice_cmp(input_slice, exit_slice) )
-		{
-			puts("Thank you for using CRUM");
-			break;
-		}
-		else
-		{
-			Result result = evaluate_string(&stack, input_slice);
-			if ( result.is_err )
+			Slice result;
+			if ( !Slice_tok(&input_slice, &result, ' ') )
 			{
-				printf("Error: %s\nToken: %.*s\n", result.error.err_str, result.error.token_length,
-				    input_slice.string + result.error.index);
+				break;
 			}
+			tokens[tokensize++] = result;
 		}
+		evaluate_string(&stack, tokens, tokensize);
+		// if ( Slice_cmp(input_slice, help_slice) )
+		// {
+		// 	puts(help_msg);
+		// }
+		// else if ( Slice_cmp(input_slice, quit_slice) || Slice_cmp(input_slice, q_slice) || Slice_cmp(input_slice, exit_slice) )
+		// {
+		// 	puts("Thank you for using CRUM");
+		// 	break;
+		// }
+		// else
+		// {
+		// 	Result result = evaluate_string(&stack, input_slice);
+		// 	if ( result.is_err )
+		// 	{
+		// 		printf("Error: %s\nToken: %.*s\n", result.error.err_str, result.error.token_length,
+		// 		    input_slice.string + result.error.index);
+		// 	}
+		// }
 		fputs(">>> ", stdout);
 	}
 	return 0;
