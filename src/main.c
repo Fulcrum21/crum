@@ -1,8 +1,6 @@
 // TODO: Variables
-// TODO: better error handling
 // TODO: bignum support
 #define RESULT_IMPL
-#define SLICE_IMPL
 #include "crum.h"
 #include <libgen.h>
 #include <math.h>
@@ -38,6 +36,10 @@ int main(int argc, char* argv[])
 		else
 		{
 			fprintf(stderr, "Invalid option: %s\n", argv[i]);
+			printf("Usage: %s [options]\n", basename(argv[0]));
+			puts("Options:\n");
+			puts("  -h, --help\t\tShows this help message");
+			puts("  --radians\t\tUses radians instead of degrees");
 			return 1;
 		}
 	}
@@ -48,9 +50,10 @@ int main(int argc, char* argv[])
 	Slice exit_slice = Slice_from_cstr("exit");
 	Stack stack = { 0 };
 	fputs(welcome_msg, stdout);
-	fputs(">>> ", stdout);
+	Result result = { 0 };
 	while ( 1 )
 	{
+		fputs(">>> ", stdout);
 		size_t tokensize = 0;
 		Slice tokens[TOKENSIZE] = { 0 };
 		char buffer[BUFFERSIZE] = { 0 };
@@ -72,26 +75,27 @@ int main(int argc, char* argv[])
 			}
 			tokens[tokensize++] = result;
 		}
-		evaluate_string(&stack, tokens, tokensize);
-		// if ( Slice_cmp(input_slice, help_slice) )
-		// {
-		// 	puts(help_msg);
-		// }
-		// else if ( Slice_cmp(input_slice, quit_slice) || Slice_cmp(input_slice, q_slice) || Slice_cmp(input_slice, exit_slice) )
-		// {
-		// 	puts("Thank you for using CRUM");
-		// 	break;
-		// }
-		// else
-		// {
-		// 	Result result = evaluate_string(&stack, input_slice);
-		// 	if ( result.is_err )
-		// 	{
-		// 		printf("Error: %s\nToken: %.*s\n", result.error.err_str, result.error.token_length,
-		// 		    input_slice.string + result.error.index);
-		// 	}
-		// }
-		fputs(">>> ", stdout);
+		if ( tokensize > 0 )
+		{
+			if ( Slice_cmp(tokens[0], help_slice) )
+			{
+				puts(help_msg);
+				continue;
+			}
+			else if ( Slice_cmp(tokens[0], quit_slice) || Slice_cmp(tokens[0], q_slice) || Slice_cmp(tokens[0], exit_slice) )
+			{
+				exit(EXIT_SUCCESS);
+			}
+			else
+			{
+				result = evaluate_tokens(&stack, tokens, tokensize);
+				if ( result.is_err )
+				{
+					printf("Error whilst evaluating token `%.*s`: %s\n", Slice_fmt_arg(result.error.illegal_token),
+					    result.error.err_str);
+				}
+			}
+		}
 	}
 	return 0;
 }

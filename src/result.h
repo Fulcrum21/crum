@@ -1,14 +1,13 @@
 #ifndef RESULT_H_
 #define RESULT_H_
+#include "slice.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 typedef struct
 {
 	char* err_str;
-	size_t index;
-	uint8_t token_length;
-
+	Slice illegal_token;
 } Error;
 typedef struct
 {
@@ -21,7 +20,7 @@ typedef struct
 } Result;
 
 Result create_Result(long double result);
-Result create_Result_err(char* error, uint8_t token_length, size_t index);
+Result create_Result_err(char* error, Slice slice);
 #endif // RESULT_H_
 
 #ifdef RESULT_IMPL
@@ -32,10 +31,10 @@ Result create_Result(long double result)
 		.result = result,
 	};
 }
-Result create_Result_err(char* error, uint8_t token_length, size_t index)
+Result create_Result_err(char* error, Slice slice)
 {
 	return (Result){
-		.is_err = true, .error = (Error){.err_str = error, .index = index, .token_length = token_length}
+		.is_err = true, .error = (Error){.err_str = error, .illegal_token = slice}
 	};
 }
 #endif
